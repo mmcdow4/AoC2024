@@ -100,7 +100,7 @@ def run_course(course, start_pos, end_pos, max_x, max_y):
     num_100ps_cheats = 0
     for pos, times in cheats.items():
         for time in times:
-            if visited[pos.y][pos.x] - time > 100:
+            if visited[pos.y][pos.x] - time >= 100:
                 num_100ps_cheats += 1
 
     return num_100ps_cheats
