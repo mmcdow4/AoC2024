@@ -1,87 +1,42 @@
-import math
+from collections import Counter
 
-class Stone:
-    def __init__(self, value):
-        self.value = value
-        self.next = None
-    
-    def value(self):
-        return self.value
-    
-    def blink(self):
-        if self.value == 0:
-            self.value = 1
-        elif (math.ceil(math.log10(self.value + 0.01)) % 2) == 0:
-            num_digits = math.ceil(math.log10(self.value + 0.01)) / 2
-            new_value = int(math.floor(self.value / (10 ** num_digits)))
-            next_value = int(self.value - new_value * (10 ** num_digits))
-            new_stone = Stone(next_value)
-            new_stone.next = self.next
+def next_value(value):
+    if value == 0:
+        return [1]
+    num_digits = len(str(value))
+    if num_digits % 2 == 0:
+        divisor = 10 ** (num_digits // 2)
+        return [value // divisor, value % divisor]
+    else:
+        return [value * 2024]
 
-            self.value = new_value
-            self.next = new_stone
-            return True
-        else:
-            self.value = self.value * 2024
-        
-        return False
+def blink(stone_line, cache):
+    new_stones = Counter()
+    for stone, count in stone_line.items():
+        if stone not in cache:
+            cache[stone] = next_value(stone)
+        for value in cache[stone]:
+            new_stones[value] += count
+    return new_stones
 
-class LinkedList:
-    def __init__(self):
-        self.head = None
-        self.tail = None
-        self.len = 0
-    
-    def append(self, value):
-        new_stone = Stone(value)
-        if self.tail == None:
-            self.head = new_stone
-            self.tail = new_stone
-            print(f"New value {value} added as the list head")
-        else:
-            self.tail.next = new_stone
-            self.tail = new_stone
-            print(f"New value {value} appended to the tail")
-        self.len += 1
-    
-    def blink(self):
-        curr_node = self.head
-        while not curr_node == None:
-            if curr_node.blink():
-                self.len += 1
-                curr_node = curr_node.next #skip the node we just added for this iteration
-            curr_node = curr_node.next
-
-
-def print_list(stone_line):
-    out_str = ""
-    curr_stone = stone_line.head
-    while not curr_stone.next == None:
-        out_str += str(curr_stone.value) + " "
-        curr_stone = curr_stone.next
-    print(f"Stone Line = [{out_str}]")
-
-stone_line = LinkedList()
 
 with open("E:\\dev\\AoC2024\\day11\\input.txt") as file:
     values = list(map(int, file.readline().split(' ')))
-    for value in values:
-        stone_line.append(value)
 
-
-blink_count = 0
-#print_list(stone_line)
+stone_line = Counter(values)
+cache = {}
+blink_count = 1
 for _ in range(25):
-    stone_line.blink()
+    stone_line = blink(stone_line, cache)
     blink_count += 1
-    print(f"Blinked {blink_count} times")
-    #print_list(stone_line)
 
-print(f"After 25 blinks, the stone line is {stone_line.len} long")
+stone_count = sum(stone_line.values())
+
+print(f"After 25 blinks, the stone line is {stone_count} long")
 
 for _ in range(50):
-    stone_line.blink()
-    blink_count += 1
-    print(f"Blinked {blink_count} times")
+    stone_line = blink(stone_line, cache)
 
-print(f"After 75 blinks, the stone line is {stone_line.len} long")
+stone_count = sum(stone_line.values())
+
+print(f"After 75 blinks, the stone line is {stone_count} long")
